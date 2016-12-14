@@ -16,6 +16,10 @@ function ajaxP(method, url, data) {
             });
         };
         
+        if (typeof data === "object") {
+            data = JSON.stringify(data);
+        }
+        
         xhr.send(data);
     });
 }

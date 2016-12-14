@@ -5,12 +5,16 @@
         <title>GBF Guild War Guild Searcher</title>
         
         <script type = "text/javascript" src = "//cdn.jsdelivr.net/bluebird/latest/bluebird.core.min.js"></script>
-        <script type = "text/javascript" src = "static/js/util.js"></script>
-        <script type = "text/javascript" src = "static/js/gw-guild-searcher.js"></script>
+        <script type = "text/javascript" src = "/static/js/util.js"></script>
+        <script type = "text/javascript" src = "/static/js/gw-guild-searcher.js"></script>
         
         <style type = "text/css">
-            input[type = "number"]{
+            input[type = "number"] {
                 width: 40px;
+            }
+            
+            .error {
+                color: red;
             }
         </style>
     </head>
@@ -38,5 +42,7 @@
                 <button type = "button" id = "gwNumButton">Search</button>
             </p>
         </div>
+        
+        <div id = "content"></div>
     </body>
 </html>
