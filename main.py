@@ -1,6 +1,5 @@
 # -*- coding: utf-8 -*-
 
-import logging
 import json
 import sqlite3
 from types import TupleType, DictType
@@ -31,9 +30,9 @@ def response_helper(f):
     
     return wrapper
 
-def like_escape(str):
+def likify(str):
     # sqlite doesn't support [] so no need to escape
-    return str.replace('!', '!!').replace('%', '!%').replace('_', '!_')
+    return ''.join(('%', str.replace('!', '!!').replace('%', '!%').replace('_', '!_'), '%'))
 
 @app.route('/')
 @response_helper
@@ -60,8 +59,7 @@ def get_guilds():
     try:
         conn = sqlite3.connect('gbf-gw.sqlite')
         c = conn.cursor()
-        bindings = (''.join(('%', like_escape(obj['search']), '%')),)
-        c.execute(SEARCH_QUERY, bindings)
+        c.execute(SEARCH_QUERY, (likify(obj['search']),))
         
         result = {}
         
@@ -120,12 +118,6 @@ def get_gw_data(id):
     
     finally:
         conn.close()
-
-@app.errorhandler(500)
-def server_error(e):
-    # Log the error and stacktrace.
-    logging.exception('An error occurred during a request.')
-    return 'An internal error occurred.', 500
 
 if __name__ == '__main__':
     app.run()
