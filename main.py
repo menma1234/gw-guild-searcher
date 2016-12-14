@@ -86,11 +86,11 @@ def find_by_id(id):
         c.execute(FIND_BY_ID_QUERY, (id,))
         
         result = [{
-                    'gw_num': gw_num,
-                    'is_seed': is_seed,
-                    'name': name,
-                    'rank': rank,
-                    'points': points
+                     'gw_num': gw_num,
+                     'is_seed': is_seed,
+                     'name': name,
+                     'rank': rank,
+                     'points': points
                  } for (gw_num, is_seed, name, rank, points, _) in c.fetchall()]
         
         return {id: result}
@@ -98,23 +98,25 @@ def find_by_id(id):
     finally:
         conn.close()
 
-@app.route('/full/<int:id>')
+@app.route('/full/<int:num>')
 @response_helper
-def get_gw_data(id):
+def get_gw_data(num):
     try:
         conn = sqlite3.connect('gbf-gw.sqlite')
         c = conn.cursor()
-        c.execute(GET_GW_QUERY, (id,))
+        c.execute(GET_GW_QUERY, (num,))
         
-        result = [{
-                    'is_seed': is_seed,
-                    'name': name,
-                    'rank': rank,
-                    'points': points,
-                    'id': id
-                 } for (_, is_seed, name, rank, points, id) in c.fetchall()]
+        result = {}
+        for is_seed, group in groupby(c.fetchall(), lambda x: x[1]):
+            result["seed" if is_seed else "regular"] = (
+                [{
+                   'name': name,
+                   'points': points,
+                   'id': id
+                } for (_, _, name, _, points, id) in group]
+            )
         
-        return {id: result}
+        return {num: result}
     
     finally:
         conn.close()
