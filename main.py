@@ -35,11 +35,15 @@ def like_escape(str):
 @app.route('/')
 @response_helper
 def index():
-    conn = sqlite3.connect('gbf-gw.sqlite')
-    c = conn.cursor()
-    c.execute(MAX_GW_QUERY)
-
-    return 'Guild Wars data available up to GW #' + str(c.fetchone()[0])
+    try:
+        conn = sqlite3.connect('gbf-gw.sqlite')
+        c = conn.cursor()
+        c.execute(MAX_GW_QUERY)
+        
+        return 'Guild Wars data available up to GW #' + str(c.fetchone()[0])
+    
+    finally:
+        conn.close()
 
 @app.route('/search', methods = ('POST',))
 @response_helper
