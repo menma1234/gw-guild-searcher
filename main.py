@@ -14,6 +14,7 @@ app = Flask(__name__)
 MAX_GW_QUERY = "select max(gw_num) from rankings"
 SEARCH_QUERY = "select gw_num, is_seed, name, rank, points, id from rankings where id in (select distinct id from cur_gw where id in (select distinct id from rankings where name like ? escape '!')) order by id, gw_num desc"
 FIND_BY_ID_QUERY = "select gw_num, is_seed, name, rank, points, id from rankings where id = ? order by gw_num desc"
+GET_GW_QUERY = "select gw_num, is_seed, name, rank, points, id from rankings where gw_num = ? order by is_seed, rank"
 
 def response_helper(f):
     @wraps(f)
@@ -71,7 +72,7 @@ def get_guilds():
                             'name': name,
                             'rank': rank,
                             'points': points
-                         } for (gw_num, is_seed, name, rank, points, id) in group]
+                         } for (gw_num, is_seed, name, rank, points, _) in group]
         
         return result
     
@@ -92,7 +93,28 @@ def find_by_id(id):
                     'name': name,
                     'rank': rank,
                     'points': points
-                 } for (gw_num, is_seed, name, rank, points, id) in c.fetchall()]
+                 } for (gw_num, is_seed, name, rank, points, _) in c.fetchall()]
+        
+        return {id: result}
+    
+    finally:
+        conn.close()
+
+@app.route('/full/<int:id>')
+@response_helper
+def get_gw_data(id):
+    try:
+        conn = sqlite3.connect('gbf-gw.sqlite')
+        c = conn.cursor()
+        c.execute(GET_GW_QUERY, (id,))
+        
+        result = [{
+                    'is_seed': is_seed,
+                    'name': name,
+                    'rank': rank,
+                    'points': points,
+                    'id': id
+                 } for (_, is_seed, name, rank, points, id) in c.fetchall()]
         
         return {id: result}
     
