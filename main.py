@@ -5,6 +5,7 @@ import json
 import sqlite3
 from types import TupleType, DictType
 from functools import wraps
+from itertools import groupby
 
 from flask import Flask, request
 
@@ -62,19 +63,15 @@ def get_guilds():
         c.execute(SEARCH_QUERY, bindings)
         
         result = {}
-        for (gw_num, is_seed, name, rank, points, id) in c.fetchall():
-            entry = {
-                        'gw_num': gw_num,
-                        'is_seed': is_seed,
-                        'name': name,
-                        'rank': rank,
-                        'points': points
-                    }
-            
-            if id in result:
-                result[id].append(entry)
-            else:
-                result[id] = [entry]
+        
+        for id, group in groupby(c.fetchall(), lambda x: x[-1]):
+            result[id] = [{
+                            'gw_num': gw_num,
+                            'is_seed': is_seed,
+                            'name': name,
+                            'rank': rank,
+                            'points': points
+                         } for (gw_num, is_seed, name, rank, points, id) in group]
         
         return result
     
