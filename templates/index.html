@@ -1,0 +1,42 @@
+<!doctype html>
+<html>
+    <head>
+        <meta http-equiv="content-type" content="text/html; charset=utf-8" />
+        <title>GBF Guild War Guild Searcher</title>
+        
+        <script type = "text/javascript" src = "//cdn.jsdelivr.net/bluebird/latest/bluebird.core.min.js"></script>
+        <script type = "text/javascript" src = "static/js/util.js"></script>
+        <script type = "text/javascript" src = "static/js/gw-guild-searcher.js"></script>
+        
+        <style type = "text/css">
+            input[type = "number"]{
+                width: 40px;
+            }
+        </style>
+    </head>
+    
+    <body>
+        <div>
+            <p>Guild Wars data available up to GW #{{ max_gw }}.</p>
+            <p>Yes, I know this looks bad. I'll make it look better in the future maybe.</p>
+            
+            <p>
+                Find by guild name:
+                <input id = "guildName" type = "text" />
+                <button type = "button" id = "guildNameButton">Search</button>
+            </p>
+            
+            <p>
+                Find by guild ID:
+                <input id = "guildId" type = "text" />
+                <button type = "button" id = "guildIdButton">Search</button>
+            </p>
+            
+            <p>
+                List rankings for GW:
+                <input id = "gwNum" type = "number" min = "{{ min_gw }}" max = "{{ max_gw }}" value = "{{ max_gw }}" />
+                <button type = "button" id = "gwNumButton">Search</button>
+            </p>
+        </div>
+    </body>
+</html>

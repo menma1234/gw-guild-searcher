@@ -6,11 +6,11 @@ from types import TupleType, DictType
 from functools import wraps
 from itertools import groupby
 
-from flask import Flask, request
+from flask import Flask, request, render_template
 
 app = Flask(__name__)
 
-MAX_GW_QUERY = "select max(gw_num) from rankings"
+GW_RANGE_QUERY = "select min(gw_num), max(gw_num) from rankings"
 SEARCH_QUERY = "select gw_num, is_seed, name, rank, points, id from rankings where id in (select distinct id from cur_gw where id in (select distinct id from rankings where name like ? escape '!')) order by id, gw_num desc"
 FIND_BY_ID_QUERY = "select gw_num, is_seed, name, rank, points, id from rankings where id = ? order by gw_num desc"
 GET_GW_QUERY = "select gw_num, is_seed, name, rank, points, id from rankings where gw_num = ? order by is_seed, rank"
@@ -35,14 +35,14 @@ def likify(str):
     return ''.join(('%', str.replace('!', '!!').replace('%', '!%').replace('_', '!_'), '%'))
 
 @app.route('/')
-@response_helper
 def index():
     try:
         conn = sqlite3.connect('gbf-gw.sqlite')
         c = conn.cursor()
-        c.execute(MAX_GW_QUERY)
+        c.execute(GW_RANGE_QUERY)
         
-        return 'Guild Wars data available up to GW #' + str(c.fetchone()[0])
+        (min_gw, max_gw) = c.fetchone()
+        return render_template('index.html', min_gw = min_gw, max_gw = max_gw)
     
     finally:
         conn.close()
