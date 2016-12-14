@@ -12,11 +12,12 @@ app = Flask(__name__)
 
 MAX_GW_QUERY = "select max(gw_num) from rankings"
 SEARCH_QUERY = "select gw_num, is_seed, name, rank, points, id from rankings where id in (select distinct id from cur_gw where id in (select distinct id from rankings where name like ? escape '!')) order by id, gw_num desc"
+FIND_BY_ID_QUERY = "select gw_num, is_seed, name, rank, points, id from rankings where id = ? order by gw_num desc"
 
 def response_helper(f):
     @wraps(f)
-    def wrapper():
-        value = f()
+    def wrapper(*args, **kwargs):
+        value = f(*args, **kwargs)
         
         if type(value) is TupleType:
             (obj, return_code) = value
@@ -54,28 +55,52 @@ def get_guilds():
     if 'search' not in obj:
         return 'Missing search key', 400
     
-    conn = sqlite3.connect('gbf-gw.sqlite')
-    c = conn.cursor()
-    bindings = (''.join(('%', like_escape(obj['search']), '%')),)
-    c.execute(SEARCH_QUERY, bindings)
+    try:
+        conn = sqlite3.connect('gbf-gw.sqlite')
+        c = conn.cursor()
+        bindings = (''.join(('%', like_escape(obj['search']), '%')),)
+        c.execute(SEARCH_QUERY, bindings)
+        
+        result = {}
+        for (gw_num, is_seed, name, rank, points, id) in c.fetchall():
+            entry = {
+                        'gw_num': gw_num,
+                        'is_seed': is_seed,
+                        'name': name,
+                        'rank': rank,
+                        'points': points
+                    }
+            
+            if id in result:
+                result[id].append(entry)
+            else:
+                result[id] = [entry]
+        
+        return result
     
-    result = {}
-    for (gw_num, is_seed, name, rank, points, id) in c.fetchall():
-        entry = {
+    finally:
+        conn.close()
+
+@app.route('/info/<int:id>')
+@response_helper
+def find_by_id(id):
+    try:
+        conn = sqlite3.connect('gbf-gw.sqlite')
+        c = conn.cursor()
+        c.execute(FIND_BY_ID_QUERY, (id,))
+        
+        result = [{
                     'gw_num': gw_num,
                     'is_seed': is_seed,
                     'name': name,
                     'rank': rank,
                     'points': points
-                }
+                 } for (gw_num, is_seed, name, rank, points, id) in c.fetchall()]
         
-        if id in result:
-            result[id].append(entry)
-        else:
-            result[id] = [entry]
+        return {id: result}
     
-    conn.close()
-    return result
+    finally:
+        conn.close()
 
 @app.errorhandler(500)
 def server_error(e):
