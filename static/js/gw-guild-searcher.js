@@ -22,73 +22,20 @@ window.onload = function() {
         return link;
     }
     
-    function renderGuildInfo(data, search) {
-        var ids = Object.keys(data);
-        if (ids.length === 0) {
+    function renderGuildInfo(data) {
+        if (data.length === 0) {
             showError("No results found.");
             return;
         }
         
-        // sort in order of relevance
-        if (search) {
-            var compareRankAndSeed = function(a, b) {
-                // superseeds first
-                if (a.gw_num !== b.gw_num) {
-                    return a.gw_num - b.gw_num;
-                }
-                
-                // seeds next
-                if (a.is_seed !== b.is_seed) {
-                    return b.is_seed - a.is_seed;
-                }
-                
-                // higher rank comes first
-                return a.rank - b.rank;
-            };
-            
-            ids.sort(function(a, b) {
-                var aName = data[a][0].name;
-                var bName = data[b][0].name;
-                
-                // case 1 & 2: one has an exact matching name while the other doesn't
-                if (aName === search && bName !== search) {
-                    return -1;
-                }
-                
-                if (aName !== search && bName === search) {
-                    return 1;
-                }
-                
-                // case 3: both have matching name, sort based on rank and seed status
-                if (aName === search && bName === search) {
-                    return compareRankAndSeed(data[a][0], data[b][0]);
-                }
-                
-                // case 4: neither have matching name
-                // names that contain the search come first, then sort based on rank and seed status
-                var aIndex = aName.indexOf(search);
-                var bIndex = bName.indexOf(search);
-                
-                if (aIndex >= 0 && bIndex < 0) {
-                    return -1;
-                }
-                
-                if (aIndex < 0 && bIndex >= 0) {
-                    return 1;
-                }
-                
-                return compareRankAndSeed(data[a][0], data[b][0]);
-            });
-        }
-        
         body.innerHTML = "";
         
-        ids.forEach(function(id) {
+        data.forEach(function(entry) {
             var div = document.createElement("div");
             var ul = document.createElement("ul");
             
-            for (var i = 0; i < data[id].length; i++) {
-                var elem = data[id][i];
+            for (var i = 0; i < entry.data.length; i++) {
+                var elem = entry.data[i];
                 
                 var text = " - Ranked #" + elem.rank
                     + (elem.is_seed ? " in seed rankings " : " ")
@@ -99,7 +46,7 @@ window.onload = function() {
                 if (i === 0) {
                     li.className = "heading";
                     
-                    li.appendChild(createGuildLink(elem, id));
+                    li.appendChild(createGuildLink(elem, entry.id));
                     li.appendChild(document.createTextNode(text));
                 } else {
                     li.textContent = elem.name + text;
@@ -157,7 +104,7 @@ window.onload = function() {
         
         ajaxP("POST", "/search", {"search": name})
             .then(function(data) {
-                renderGuildInfo(JSON.parse(data), name);
+                renderGuildInfo(JSON.parse(data).result);
             }).catch(function(err) {
                 showError(err.message || ("An error occurred: " + err.status + " " + err.statusText));
             });
@@ -173,7 +120,7 @@ window.onload = function() {
         
         ajaxP("GET", "/info/" + id)
             .then(function(data) {
-                renderGuildInfo(JSON.parse(data));
+                renderGuildInfo([ JSON.parse(data) ]);
             }).catch(function(err) {
                 showError(err.message || ("An error occurred: " + err.status + " " + err.statusText));
             });
@@ -192,7 +139,7 @@ window.onload = function() {
         
         ajaxP("GET", "/full/" + gwNum)
             .then(function(data) {
-                renderGwData(JSON.parse(data));
+                renderGwData(JSON.parse(data).data);
             }).catch(function(err) {
                 showError(err.message || ("An error occurred: " + err.status + " " + err.statusText));
             });

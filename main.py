@@ -34,6 +34,50 @@ def likify(str):
     # sqlite doesn't support [] so no need to escape
     return ''.join(('%', str.replace('!', '!!').replace('%', '!%').replace('_', '!_'), '%'))
 
+def sort_guilds(data, search):
+    def cmp_rank_seed(a, b):
+        # superseeds first
+        if a['gw_num'] != b['gw_num']:
+            return a['gw_num'] - b['gw_num']
+        
+        # seeds next
+        if a['is_seed'] != b['is_seed']:
+            return b['is_seed'] - a['is_seed']
+        
+        # higher rank comes first
+        return a['rank'] - b['rank']
+    
+    def cmp_func(a, b):
+        print a
+        a_name = a['data'][0]['name']
+        b_name = b['data'][0]['name']
+        
+        # case 1 & 2: one has an exact matching name while the other doesn't
+        if a_name == search and b_name != search:
+            return -1
+        
+        if a_name != search and b_name == search:
+            return 1
+        
+        # case 3: both have matching name, sort based on rank and seed status
+        if a_name == search and b_name == search:
+            return cmp_rank_seed(a['data'][0], b['data'][0])
+        
+        # case 4: neither have matching name
+        # names that contain the search come first, then sort based on rank and seed status
+        a_index = a_name.find(search);
+        b_index = b_name.find(search);
+        
+        if a_index >= 0 and b_index < 0:
+            return -1
+        
+        if a_index < 0 and b_index >= 0:
+            return 1
+        
+        return cmp_rank_seed(a['data'][0], b['data'][0])
+    
+    return sorted(data, cmp = cmp_func)
+
 @app.route('/')
 def index():
     try:
@@ -61,18 +105,21 @@ def get_guilds():
         c = conn.cursor()
         c.execute(SEARCH_QUERY, (likify(obj['search']),))
         
-        result = {}
+        result = []
         
         for id, group in groupby(c.fetchall(), lambda x: x[-1]):
-            result[id] = [{
+            result.append({
+                'id': id,
+                'data': [{
                              'gw_num': gw_num,
                              'is_seed': is_seed,
                              'name': name,
                              'rank': rank,
                              'points': points
                          } for (gw_num, is_seed, name, rank, points, _) in group]
+            })
         
-        return result
+        return {'result': sort_guilds(result, obj['search'])}
     
     finally:
         conn.close()
@@ -93,7 +140,10 @@ def find_by_id(id):
                      'points': points
                  } for (gw_num, is_seed, name, rank, points, _) in c.fetchall()]
         
-        return {id: result} if len(result) > 0 else {}
+        return ({
+            'id': id,
+            'data': result
+        })
     
     finally:
         conn.close()
@@ -117,7 +167,10 @@ def get_gw_data(num):
                 } for (_, _, name, rank, points, id) in group]
             )
         
-        return result;
+        return ({
+            'num': num,
+            'data': result
+        })
     
     finally:
         conn.close()
