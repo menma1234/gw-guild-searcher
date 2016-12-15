@@ -69,11 +69,11 @@ window.onload = function() {
                 var aIndex = aName.indexOf(search);
                 var bIndex = bName.indexOf(search);
                 
-                if (aIndex > 0 && bIndex < 0) {
+                if (aIndex >= 0 && bIndex < 0) {
                     return -1;
                 }
                 
-                if (aIndex < 0 && bIndex > 0) {
+                if (aIndex < 0 && bIndex >= 0) {
                     return 1;
                 }
                 
