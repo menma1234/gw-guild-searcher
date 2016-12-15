@@ -32,13 +32,18 @@ window.onload = function() {
         // sort in order of relevance
         if (search) {
             function compareRankAndSeed(a, b) {
-                // lower rank comes first
-                if (a.is_seed === b.is_seed) {
-                    return a.rank - b.rank;
+                // superseeds first
+                if (a.gw_num !== b.gw_num) {
+                    return a.gw_num - b.gw_num;
                 }
                 
-                // regulars come before seeds
-                return a.is_seed - b.is_seed;
+                // seeds next
+                if (a.is_seed !== b.is_seed) {
+                    return b.is_seed - a.is_seed;
+                }
+                
+                // higher rank comes first
+                return a.rank - b.rank;
             }
             
             ids.sort(function(a, b) {
@@ -60,13 +65,15 @@ window.onload = function() {
                 }
                 
                 // case 4: neither have matching name
-                // names that are prefixed with the search come first
-                // otherwise, sort based on rank and seed status
-                if (aName.startsWith(search) && !bName.startsWith(search)) {
+                // names that contain the search come first, then sort based on rank and seed status
+                var aIndex = aName.indexOf(search);
+                var bIndex = bName.indexOf(search);
+                
+                if (aIndex > 0 && bIndex < 0) {
                     return -1;
                 }
                 
-                if (!aName.startsWith(search) && bName.startsWith(search)) {
+                if (aIndex < 0 && bIndex > 0) {
                     return 1;
                 }
                 
