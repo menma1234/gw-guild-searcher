@@ -10,6 +10,8 @@ from flask import Flask, request, render_template
 
 app = Flask(__name__)
 
+DB_FILE = 'gbf-gw.sqlite'
+
 GW_RANGE_QUERY = "select min(gw_num), max(gw_num) from rankings"
 SEARCH_QUERY = "select gw_num, is_seed, name, rank, points, id from rankings where id in (select distinct id from cur_gw where id in (select distinct id from rankings where name like ? escape '!')) order by id, gw_num desc"
 FIND_BY_ID_QUERY = "select gw_num, is_seed, name, rank, points, id from rankings where id = ? order by gw_num desc"
@@ -81,7 +83,7 @@ def sort_guilds(data, search):
 @app.route('/')
 def index():
     try:
-        conn = sqlite3.connect('gbf-gw.sqlite')
+        conn = sqlite3.connect(DB_FILE)
         c = conn.cursor()
         c.execute(GW_RANGE_QUERY)
         
@@ -101,7 +103,7 @@ def get_guilds():
         return 'Missing search key', 400
     
     try:
-        conn = sqlite3.connect('gbf-gw.sqlite')
+        conn = sqlite3.connect(DB_FILE)
         c = conn.cursor()
         c.execute(SEARCH_QUERY, (likify(obj['search']),))
         
@@ -128,7 +130,7 @@ def get_guilds():
 @response_helper
 def find_by_id(id):
     try:
-        conn = sqlite3.connect('gbf-gw.sqlite')
+        conn = sqlite3.connect(DB_FILE)
         c = conn.cursor()
         c.execute(FIND_BY_ID_QUERY, (id,))
         
@@ -152,7 +154,7 @@ def find_by_id(id):
 @response_helper
 def get_gw_data(num):
     try:
-        conn = sqlite3.connect('gbf-gw.sqlite')
+        conn = sqlite3.connect(DB_FILE)
         c = conn.cursor()
         c.execute(GET_GW_QUERY, (num,))
         
