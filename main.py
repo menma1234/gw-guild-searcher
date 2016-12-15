@@ -93,7 +93,7 @@ def find_by_id(id):
                      'points': points
                  } for (gw_num, is_seed, name, rank, points, _) in c.fetchall()]
         
-        return {id: result}
+        return {id: result} if len(result) > 0 else {}
     
     finally:
         conn.close()

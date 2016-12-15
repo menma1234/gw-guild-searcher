@@ -6,7 +6,11 @@ function ajaxP(method, url, data) {
         xhr.open(method, url);
         
         xhr.onload = function() {
-            res(xhr.response);
+            if (xhr.status >= 400) {
+                xhr.onerror();
+            } else {
+                res(xhr.response);
+            }
         };
         
         xhr.onerror = function() {

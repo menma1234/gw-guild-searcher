@@ -13,6 +13,11 @@ window.onload = function() {
     }
     
     function renderGuildInfo(data) {
+        if (Object.keys(data).length === 0) {
+            showError("No results found.");
+            return;
+        }
+        
         body.innerHTML = "";
         
         var pre = document.createElement("pre");
@@ -40,19 +45,14 @@ window.onload = function() {
             .then(function(data) {
                 renderGuildInfo(JSON.parse(data));
             }).catch(function(err) {
-                showError("An error occurred: " + err.statusText);
+                showError("An error occurred: " + err.status + " " + err.statusText);
             });
     }
     
     function guildIdButtonHandler() {
         var id = parseInt(document.getElementById("guildId").value);
         
-        if (isNaN(id)) {
-            showError("ID cannot be empty.");
-            return;
-        }
-        
-        if (id <= 0) {
+        if (isNaN(id) || id <= 0) {
             showError("Invalid ID.");
             return;
         }
@@ -71,12 +71,7 @@ window.onload = function() {
         var minGw = +gwNumEntry.getAttribute("min");
         var maxGw = +gwNumEntry.getAttribute("max");
         
-        if (isNaN(gwNum)) {
-            showError("Guild Wars number cannot be empty.");
-            return;
-        }
-        
-        if (gwNum < minGw || gwNum > maxGw) {
+        if (isNaN(gwNum) || gwNum < minGw || gwNum > maxGw) {
             showError("Invalid Guild Wars event number.");
             return;
         }
