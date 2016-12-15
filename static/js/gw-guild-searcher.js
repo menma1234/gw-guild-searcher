@@ -31,7 +31,7 @@ window.onload = function() {
         
         // sort in order of relevance
         if (search) {
-            function compareRankAndSeed(a, b) {
+            var compareRankAndSeed = function(a, b) {
                 // superseeds first
                 if (a.gw_num !== b.gw_num) {
                     return a.gw_num - b.gw_num;
@@ -44,7 +44,7 @@ window.onload = function() {
                 
                 // higher rank comes first
                 return a.rank - b.rank;
-            }
+            };
             
             ids.sort(function(a, b) {
                 var aName = data[a][0].name;
