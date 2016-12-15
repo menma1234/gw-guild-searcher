@@ -22,15 +22,61 @@ window.onload = function() {
         return link;
     }
     
-    function renderGuildInfo(data) {
-        if (Object.keys(data).length === 0) {
+    function renderGuildInfo(data, search) {
+        var ids = Object.keys(data);
+        if (ids.length === 0) {
             showError("No results found.");
             return;
         }
         
+        // sort in order of relevance
+        if (search) {
+            function compareRankAndSeed(a, b) {
+                // lower rank comes first
+                if (a.is_seed === b.is_seed) {
+                    return a.rank - b.rank;
+                }
+                
+                // regulars come before seeds
+                return a.is_seed - b.is_seed;
+            }
+            
+            ids.sort(function(a, b) {
+                var aName = data[a][0].name;
+                var bName = data[b][0].name;
+                
+                // case 1 & 2: one has an exact matching name while the other doesn't
+                if (aName === search && bName !== search) {
+                    return -1;
+                }
+                
+                if (aName !== search && bName === search) {
+                    return 1;
+                }
+                
+                // case 3: both have matching name, sort based on rank and seed status
+                if (aName === search && bName === search) {
+                    return compareRankAndSeed(data[a][0], data[b][0]);
+                }
+                
+                // case 4: neither have matching name
+                // names that are prefixed with the search come first
+                // otherwise, sort based on rank and seed status
+                if (aName.startsWith(search) && !bName.startsWith(search)) {
+                    return -1;
+                }
+                
+                if (!aName.startsWith(search) && bName.startsWith(search)) {
+                    return 1;
+                }
+                
+                return compareRankAndSeed(data[a][0], data[b][0]);
+            });
+        }
+        
         body.innerHTML = "";
         
-        for (var id in data) {
+        ids.forEach(function(id) {
             var div = document.createElement("div");
             var ul = document.createElement("ul");
             
@@ -57,7 +103,7 @@ window.onload = function() {
             
             div.appendChild(ul);
             body.appendChild(div);
-        }
+        });
     }
     
     function renderGwData(data) {
@@ -104,7 +150,7 @@ window.onload = function() {
         
         ajaxP("POST", "/search", {"search": name})
             .then(function(data) {
-                renderGuildInfo(JSON.parse(data));
+                renderGuildInfo(JSON.parse(data), name);
             }).catch(function(err) {
                 showError(err.message || ("An error occurred: " + err.status + " " + err.statusText));
             });
