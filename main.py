@@ -111,12 +111,13 @@ def get_gw_data(num):
             result["seed" if is_seed else "regular"] = (
                 [{
                    'name': name,
+                   'rank': rank,
                    'points': points,
                    'id': id
-                } for (_, _, name, _, points, id) in group]
+                } for (_, _, name, rank, points, id) in group]
             )
         
-        return {num: result}
+        return result;
     
     finally:
         conn.close()
