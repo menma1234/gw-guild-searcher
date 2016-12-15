@@ -102,7 +102,7 @@ window.onload = function() {
             return;
         }
         
-        ajaxP("POST", "/search", {"search": name})
+        ajaxP("POST", "search", {"search": name})
             .then(function(data) {
                 renderGuildInfo(JSON.parse(data).result);
             }).catch(function(err) {
@@ -118,7 +118,7 @@ window.onload = function() {
             return;
         }
         
-        ajaxP("GET", "/info/" + id)
+        ajaxP("GET", "info/" + id)
             .then(function(data) {
                 renderGuildInfo([ JSON.parse(data) ]);
             }).catch(function(err) {
@@ -137,7 +137,7 @@ window.onload = function() {
             return;
         }
         
-        ajaxP("GET", "/full/" + gwNum)
+        ajaxP("GET", "full/" + gwNum)
             .then(function(data) {
                 renderGwData(JSON.parse(data).data);
             }).catch(function(err) {
