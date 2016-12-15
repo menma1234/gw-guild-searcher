@@ -65,11 +65,11 @@ def get_guilds():
         
         for id, group in groupby(c.fetchall(), lambda x: x[-1]):
             result[id] = [{
-                            'gw_num': gw_num,
-                            'is_seed': is_seed,
-                            'name': name,
-                            'rank': rank,
-                            'points': points
+                             'gw_num': gw_num,
+                             'is_seed': is_seed,
+                             'name': name,
+                             'rank': rank,
+                             'points': points
                          } for (gw_num, is_seed, name, rank, points, _) in group]
         
         return result
@@ -110,10 +110,10 @@ def get_gw_data(num):
         for is_seed, group in groupby(c.fetchall(), lambda x: x[1]):
             result["seed" if is_seed else "regular"] = (
                 [{
-                   'name': name,
-                   'rank': rank,
-                   'points': points,
-                   'id': id
+                    'name': name,
+                    'rank': rank,
+                    'points': points,
+                    'id': id
                 } for (_, _, name, rank, points, id) in group]
             )
         
