@@ -1,6 +1,8 @@
 "use strict";
 
 window.onload = function() {
+    var GUILD_URL_PREFIX = "http://game.granbluefantasy.jp/#guild/detail/";
+    
     var body = document.getElementById("content");
     
     function showError(str) {
@@ -20,9 +22,39 @@ window.onload = function() {
         
         body.innerHTML = "";
         
-        var pre = document.createElement("pre");
-        pre.textContent = JSON.stringify(data);
-        body.appendChild(pre);
+        for (var id in data) {
+            var div = document.createElement("div");
+            var ul = document.createElement("ul");
+            
+            for (var i = 0; i < data[id].length; i++) {
+                var elem = data[id][i];
+                
+                var text = " - Ranked #" + elem.rank
+                    + (elem.is_seed ? " in seed rankings " : " ")
+                    + "in GW #" + elem.gw_num
+                    + (elem.points ? (" with " + elem.points.toLocaleString() + " points") : "");
+                
+                var li = document.createElement("li");
+                if (i === 0) {
+                    var link = document.createElement("a");
+                    link.textContent = elem.name;
+                    link.setAttribute("href", GUILD_URL_PREFIX + id);
+                    
+                    var bold = document.createElement("strong");
+                    bold.appendChild(link);
+                    bold.appendChild(document.createTextNode(text));
+                    
+                    li.appendChild(bold);
+                } else {
+                    li.textContent = elem.name + text;
+                }
+                
+                ul.appendChild(li);
+            }
+            
+            div.appendChild(ul);
+            body.appendChild(div);
+        }
     }
     
     function renderGwData(data) {
@@ -45,7 +77,7 @@ window.onload = function() {
             .then(function(data) {
                 renderGuildInfo(JSON.parse(data));
             }).catch(function(err) {
-                showError("An error occurred: " + err.status + " " + err.statusText);
+                showError(err.message || ("An error occurred: " + err.status + " " + err.statusText));
             });
     }
     
