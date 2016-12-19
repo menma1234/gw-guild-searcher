@@ -5,6 +5,10 @@ import sqlite3
 from types import TupleType, DictType
 from functools import wraps
 from itertools import groupby
+from shutil import copy
+from time import time
+from string import strip
+import csv
 
 from flask import Flask, request, render_template
 
@@ -16,6 +20,7 @@ GW_RANGE_QUERY = "select min(gw_num), max(gw_num) from rankings"
 SEARCH_QUERY = "select gw_num, is_seed, name, rank, points, id from rankings where id in (select distinct id from cur_gw where id in (select distinct id from rankings where name like ? escape '!')) order by id, gw_num desc"
 FIND_BY_ID_QUERY = "select gw_num, is_seed, name, rank, points, id from rankings where id = ? order by gw_num desc"
 GET_GW_QUERY = "select gw_num, is_seed, name, rank, points, id from rankings where gw_num = ? order by is_seed, rank"
+INSERT_QUERY = "insert into rankings (gw_num, rank, name, points, id, is_seed) values (?, ?, ?, ?, ?, ?)"
 
 def response_helper(f):
     @wraps(f)
@@ -160,7 +165,7 @@ def get_gw_data(num):
         
         result = {}
         for is_seed, group in groupby(c.fetchall(), lambda x: x[1]):
-            result["seed" if is_seed else "regular"] = (
+            result['seed' if is_seed else 'regular'] = (
                 [{
                     'name': name,
                     'rank': rank,
@@ -176,6 +181,43 @@ def get_gw_data(num):
     
     finally:
         conn.close()
+
+@app.route('/upload', methods = ('GET', 'POST',))
+def upload():
+    if request.method == 'GET':
+        return render_template('upload.html')
+    else:
+        obj = request.get_json(force = True)
+        assert obj is not None
+        
+        if 'data' not in obj:
+            return 'Missing upload data', 400
+        
+        try:
+            conn = sqlite3.connect(DB_FILE)
+            c = conn.cursor()
+            c.execute(GW_RANGE_QUERY)
+            
+            (_, max_gw) = c.fetchone()
+            
+            lines = obj['data'].splitlines()
+            reader = csv.reader(lines)
+            
+            for row in reader:
+                if len(row) != 5:
+                    return 'Invalid data format.', 400
+                
+                print row
+                c.execute(INSERT_QUERY, [max_gw + 1,] + [s.strip() for s in row])
+            
+        
+            copy(DB_FILE, ''.join((DB_FILE, '.', str(int(time())))))
+            conn.commit()
+            
+            return '', 200
+        
+        finally:
+            conn.close()
 
 if __name__ == '__main__':
     app.run()
