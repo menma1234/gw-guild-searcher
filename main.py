@@ -37,6 +37,16 @@ def response_helper(f):
     
     return wrapper
 
+def unicode_csv_reader(unicode_csv_data, dialect=csv.excel, **kwargs):
+    csv_reader = csv.reader(utf_8_encoder(unicode_csv_data), dialect=dialect, **kwargs)
+
+    for row in csv_reader:
+        yield [unicode(cell, 'utf-8') for cell in row]
+
+def utf_8_encoder(unicode_csv_data):
+    for line in unicode_csv_data:
+        yield line.encode('utf-8')
+
 def likify(str):
     # sqlite doesn't support [] so no need to escape
     return ''.join(('%', str.replace('!', '!!').replace('%', '!%').replace('_', '!_'), '%'))
@@ -201,7 +211,7 @@ def upload():
             (_, max_gw) = c.fetchone()
             
             lines = obj['data'].splitlines()
-            reader = csv.reader(lines)
+            reader = unicode_csv_reader(lines)
             
             for row in reader:
                 if len(row) != 5:
