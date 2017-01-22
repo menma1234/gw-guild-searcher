@@ -217,7 +217,6 @@ def upload():
                 if len(row) != 5:
                     return 'Invalid data format.', 400
                 
-                print row
                 c.execute(INSERT_QUERY, [max_gw + 1,] + [s.strip() for s in row])
             
         
