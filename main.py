@@ -65,7 +65,6 @@ def sort_guilds(data, search):
         return a['rank'] - b['rank']
     
     def cmp_func(a, b):
-        print a
         a_name = a['data'][0]['name']
         b_name = b['data'][0]['name']
         
@@ -82,8 +81,8 @@ def sort_guilds(data, search):
         
         # case 4: neither have matching name
         # names that contain the search come first, then sort based on rank and seed status
-        a_index = a_name.find(search);
-        b_index = b_name.find(search);
+        a_index = a_name.find(search)
+        b_index = b_name.find(search)
         
         if a_index >= 0 and b_index < 0:
             return -1
