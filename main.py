@@ -2,7 +2,6 @@
 
 import json
 import sqlite3
-from types import TupleType, DictType
 from functools import wraps
 from itertools import groupby
 from shutil import copy
@@ -27,13 +26,13 @@ def response_helper(f):
     def wrapper(*args, **kwargs):
         value = f(*args, **kwargs)
         
-        if type(value) is TupleType:
+        if type(value) is tuple:
             (obj, return_code) = value
         else:
             obj = value
             return_code = 200
         
-        return json.dumps(obj) if type(obj) is DictType else obj, return_code, {'Content-Type': 'application/json; charset=utf-8'}
+        return json.dumps(obj) if type(obj) is dict else obj, return_code, {'Content-Type': 'application/json; charset=utf-8'}
     
     return wrapper
 
@@ -47,9 +46,9 @@ def utf_8_encoder(unicode_csv_data):
     for line in unicode_csv_data:
         yield line.encode('utf-8')
 
-def likify(str):
+def likify(input_str):
     # sqlite doesn't support [] so no need to escape
-    return ''.join(('%', str.replace('!', '!!').replace('%', '!%').replace('_', '!_'), '%'))
+    return '%{}%'.format(input_str.replace('!', '!!').replace('%', '!%').replace('_', '!_'))
 
 def sort_guilds(data, search):
     def cmp_rank_seed(a, b):
@@ -103,15 +102,15 @@ def index():
         c.execute(GW_RANGE_QUERY)
         
         (min_gw, max_gw) = c.fetchone()
-        return render_template('index.html', min_gw = min_gw, max_gw = max_gw)
+        return render_template('index.html', min_gw=min_gw, max_gw=max_gw)
     
     finally:
         conn.close()
 
-@app.route('/search', methods = ('POST',))
+@app.route('/search', methods=('POST',))
 @response_helper
 def get_guilds():
-    obj = request.get_json(force = True)
+    obj = request.get_json(force=True)
     assert obj is not None
     
     if 'search' not in obj:
@@ -155,12 +154,12 @@ def find_by_id(id):
                      'name': name,
                      'rank': rank,
                      'points': points
-                 } for (gw_num, is_seed, name, rank, points, _) in c.fetchall()]
+                  } for (gw_num, is_seed, name, rank, points, _) in c.fetchall()]
         
-        return ({
+        return {
             'id': id,
             'data': result
-        })
+        }
     
     finally:
         conn.close()
@@ -181,18 +180,18 @@ def get_gw_data(num):
                     'rank': rank,
                     'points': points,
                     'id': id
-                } for (_, _, name, rank, points, id) in group]
+                 } for (_, _, name, rank, points, id) in group]
             )
         
-        return ({
+        return {
             'num': num,
             'data': result
-        })
+        }
     
     finally:
         conn.close()
 
-@app.route('/upload', methods = ('GET', 'POST',))
+@app.route('/upload', methods=('GET', 'POST'))
 def upload():
     if request.method == 'GET':
         return render_template('upload.html')
@@ -217,15 +216,16 @@ def upload():
                 if len(row) != 5:
                     return 'Invalid data format.', 400
                 
-                c.execute(INSERT_QUERY, [max_gw + 1,] + [s.strip() for s in row])
+                c.execute(INSERT_QUERY, [max_gw + 1] + [s.strip() for s in row])
         
-            copy(DB_FILE, ''.join((DB_FILE, '.', str(int(time())))))
+            copy(DB_FILE, '{}.{}'.format(DB_FILE, str(int(time()))))
             conn.commit()
             
             return '', 200
         
         finally:
             conn.close()
+
 
 if __name__ == '__main__':
     app.run()
