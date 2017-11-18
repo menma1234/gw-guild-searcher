@@ -20,7 +20,7 @@ GW_RANGE_QUERY = "select min(gw_num), max(gw_num) from rankings"
 SEARCH_QUERY = "select gw_num, is_seed, name, rank, points, id from rankings where id in (select distinct id from cur_gw where id in (select distinct id from rankings where name like ? escape '!')) order by id, gw_num desc"
 FIND_BY_ID_QUERY = "select gw_num, is_seed, name, rank, points, id from rankings where id = ? order by gw_num desc"
 GET_GW_QUERY = "select gw_num, is_seed, name, rank, points, id from rankings where gw_num = ? order by is_seed, rank"
-INSERT_QUERY = "insert into rankings (gw_num, rank, name, points, id, is_seed) values (?, ?, ?, ?, ?, ?)"
+INSERT_QUERY = "insert or replace into rankings (gw_num, rank, name, points, id, is_seed) values (?, ?, ?, ?, ?, ?)"
 
 def response_helper(f):
     @wraps(f)
@@ -65,8 +65,8 @@ def sort_guilds(data, search):
         return a['rank'] - b['rank']
     
     def cmp_func(a, b):
-        a_name = a['data'][0]['name']
-        b_name = b['data'][0]['name']
+        a_name = a['data'][0]['name'].lower()
+        b_name = b['data'][0]['name'].lower()
         
         # case 1 & 2: one has an exact matching name while the other doesn't
         if a_name == search and b_name != search:
@@ -81,17 +81,18 @@ def sort_guilds(data, search):
         
         # case 4: neither have matching name
         # names that contain the search come first, then sort based on rank and seed status
-        a_index = a_name.find(search)
-        b_index = b_name.find(search)
+        in_name_a = search in a_name
+        in_name_b = search in b_name
         
-        if a_index >= 0 and b_index < 0:
+        if in_name_a and not in_name_b:
             return -1
         
-        if a_index < 0 and b_index >= 0:
+        if not in_name_a and in_name_b:
             return 1
         
         return cmp_rank_seed(a['data'][0], b['data'][0])
     
+    search = search.lower()
     return sorted(data, cmp = cmp_func)
 
 @app.route('/')
@@ -217,7 +218,6 @@ def upload():
                     return 'Invalid data format.', 400
                 
                 c.execute(INSERT_QUERY, [max_gw + 1,] + [s.strip() for s in row])
-            
         
             copy(DB_FILE, ''.join((DB_FILE, '.', str(int(time())))))
             conn.commit()
