@@ -48,7 +48,7 @@ def utf_8_encoder(unicode_csv_data):
 
 def likify(input_str):
     # sqlite doesn't support [] so no need to escape
-    return '%{}%'.format(input_str.replace('!', '!!').replace('%', '!%').replace('_', '!_'))
+    return u'%{}%'.format(input_str.replace('!', '!!').replace('%', '!%').replace('_', '!_'))
 
 def sort_guilds(data, search):
     def cmp_rank_seed(a, b):
@@ -196,7 +196,7 @@ def upload():
     if request.method == 'GET':
         return render_template('upload.html')
     else:
-        obj = request.get_json(force = True)
+        obj = request.get_json(force=True)
         assert obj is not None
         
         if 'data' not in obj:
