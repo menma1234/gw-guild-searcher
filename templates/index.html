@@ -4,13 +4,30 @@
         <meta http-equiv="content-type" content="text/html; charset=utf-8" />
         <title>GBF Guild War Guild Searcher</title>
         
-        <script type = "text/javascript" src = "//cdn.jsdelivr.net/bluebird/latest/bluebird.core.min.js"></script>
+        <script type = "text/javascript" src = "https://cdn.jsdelivr.net/bluebird/latest/bluebird.core.min.js"></script>
         <script type = "text/javascript" src = "static/js/util.js"></script>
         <script type = "text/javascript" src = "static/js/gw-guild-searcher.js"></script>
         
+        <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/kognise/water.css@latest/dist/dark.css">
+        
         <style type = "text/css">
+            /* Begin Water.css overrides */
+            body {
+                max-width: 1000px;
+            }
+            
+            input:not([type="checkbox"]) {
+                display: inline;
+            }
+            /* End Water.css overrides */
+            
             input[type = "number"] {
-                width: 40px;
+                width: 50px;
+                margin-left: 6px;
+            }
+            
+            input[type = "text"] {
+                margin-left: 6px;
             }
             
             .error {
@@ -31,7 +48,6 @@
     <body>
         <div>
             <p>Guild Wars data available up to GW #{{ max_gw }}.</p>
-            <p>Yes, I know this looks bad. I'll make it look better in the future maybe.</p>
             
             <p>
                 Find by guild name:
