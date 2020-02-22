@@ -172,12 +172,12 @@ def get_gw_data(num):
 
         result = {}
         for is_seed, group in groupby(c.fetchall(), lambda x: x[1]):
-            result['seed' if is_seed else 'regular'] = ([{
+            result['seed' if is_seed else 'regular'] = [{
                'name': name,
                'rank': rank,
                'points': points,
                'id': id
-            } for (_, _, name, rank, points, id) in group])
+            } for (_, _, name, rank, points, id) in group]
 
         return {
             'num': num,
